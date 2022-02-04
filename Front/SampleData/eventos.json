@@ -1,0 +1,22 @@
+[
+  {
+    "nombre" : "Conferencia Futuro 2",
+    "categoria" : "Conferencia",
+    "lugar" : "Bogota",
+    "direccion" : "Calle 50",
+    "fecha_inicio" : "2022-02-01",
+    "fecha_fin" : "2022-02-01",
+    "tipo" : "Presencial",
+    "user_mail" : "ky.infante3022@uniandes.edu.co"
+  },
+  {
+    "nombre" : "Conferencia Futuro 3",
+    "categoria" : "Conferencia",
+    "lugar" : "Bogota",
+    "direccion" : "Calle 41",
+    "fecha_inicio" : "2022-02-01",
+    "fecha_fin" : "2022-02-01",
+    "tipo" : "Presencial",
+    "user_mail" : "ky.infante3022@uniandes.edu.co"
+  }
+]
