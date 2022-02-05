@@ -11,6 +11,7 @@ var errorHtmlUrl = "snippets/error.html";
 var errorLogin = "snippets/errorLogin.html";
 var eventosUsuarioUrl = "http://172.24.41.201:5000/eventosUsuario";
 var detalleEvento = "snippets/evento_detalle.html";
+var eventoLogOut = "http://172.24.41.201:5000/logout";
 
 // Convenience function for inserting innerHTML for 'select'
 var insertHtml = function (selector, html) {
@@ -41,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
       insertHtml("#main-content",responseText);
       document.forms['abcLogIn'].addEventListener('submit', inicioSesionEventListener);
     },
-    false); // Explicitely setting the flag to get JSON from server processed into an object literal
+    false);
 });
 
 // Cargar vistas de los botones
@@ -115,42 +116,34 @@ function inicioSesionEventListener(loginEvent) {
       showLoading("#main-content");
       fetch(loginEvent.target.action, {
           method: 'POST',
-          body: new URLSearchParams(new FormData(loginEvent.target)) // event.target is the form
+          body: new URLSearchParams(new FormData(loginEvent.target)), // event.target is the form
+          credentials: 'include'
       }).then((resp) => {
           return resp.json(); // or resp.text() or whatever the server sends
       }).then((bodyJson) => {
-          // TODO handle body
-          if (bodyJson.length > 0) {
-            for (var element of bodyJson) {
-              if (element.message) { // Hubo un error en la autenticacion
-                $ajaxUtils.sendGetRequest(
-                  errorLogin,
-                  function functionName(responseText) {
-                    insertHtml("#main-content",responseText);
-                  },
-                  false);
-              }else {
-                $ajaxUtils.sendGetRequest(eventosUsuarioUrl,mostrarEventosUsuario);
-              }
-            }
-          }else {
-              if (bodyJson && bodyJson.message) {
-                $ajaxUtils.sendGetRequest(
-                  errorLogin,
-                  function functionName(responseText) {
-                    insertHtml("#main-content",responseText);
-                  },
-                  false);
-              }else if (bodyJson && bodyJson.email) {
-                $ajaxUtils.sendGetRequest(eventosUsuarioUrl,mostrarEventosUsuario);
-              }else{
-                $ajaxUtils.sendGetRequest(
-                  errorLogin,
-                  function functionName(responseText) {
-                    insertHtml("#main-content",responseText);
-                  },
-                  false);
-              }
+          if (bodyJson && bodyJson.message) {
+            $ajaxUtils.sendGetRequest(
+              errorLogin,
+              function functionName(responseText) {
+                insertHtml("#main-content",responseText);
+              },
+              false);
+          }else if (bodyJson && bodyJson.email) {
+            fetch(eventosUsuarioUrl, {
+                method: 'GET',
+                credentials: 'include'
+            }).then((resp) => {
+                return resp.json();
+            }).then((bodyJson) => {
+              mostrarEventosUsuario(bodyJson);
+            });
+          }else{
+            $ajaxUtils.sendGetRequest(
+              errorLogin,
+              function functionName(responseText) {
+                insertHtml("#main-content",responseText);
+              },
+              false);
           }
       }).catch((error) => {
         $ajaxUtils.sendGetRequest(
@@ -211,12 +204,31 @@ abc.signUp = function () {
     false);
 };
 
-// abc.logout = function () {
-//   showLoading("#main-content");
-//   $ajaxUtils.sendGetRequest(
-//     allCategoriesUrl,
-//     buildAndShowCategoriesHTML);
-// };
+abc.logout = function () {
+  showLoading("#main-content");
+  fetch(eventoLogOut, {
+      method: 'GET',
+      credentials: 'include'
+  }).then((resp) => {
+      return resp.json(); // or resp.text() or whatever the server sends
+  }).then((bodyJson) => {
+    fetch(loginHtmlUrl , {
+      method: 'GET'
+    }).then((resp)=>{
+      return resp.text();
+    }).then((responseText)=>{
+      insertHtml("#main-content",responseText);
+      document.forms['abcLogIn'].addEventListener('submit', inicioSesionEventListener);
+    });
+  }).catch((error) => {
+    $ajaxUtils.sendGetRequest(
+      errorHtmlUrl,
+      function functionName(responseText) {
+        insertHtml("#main-content",responseText);
+      },
+      false);
+  });
+};
 
 global.$abc = abc;
 

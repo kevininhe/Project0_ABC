@@ -1,4 +1,4 @@
-from flask import Flask,request
+from flask import Flask,request, jsonify
 from flask_restful import Api,Resource
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
@@ -20,7 +20,7 @@ ma = Marshmallow(app)
 api = Api(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.session_protection = None
+#login_manager.session_protection = None
 
 class User(UserMixin,db.Model):
 	id = db.Column(db.Integer, primary_key=True)
@@ -74,9 +74,16 @@ class RecursoLogin(Resource):
 			responseDict = {
 				"message": "Login Incorrecto"
 			}
-			return json.dumps(responseDict)
+			response = jsonify(responseDict)
+			response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+			response.headers.add('Access-Control-Allow-Credentials', 'true')
+			return response
 		login_user(user)
-		return user_schema.dump(user)
+		result = user_schema.dump(user)
+		response = user_schema.jsonify(result)
+		response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+		response.headers.add('Access-Control-Allow-Credentials', 'true')
+		return response
 
 class RecursoSignUp(Resource):
 	def post(self):
@@ -101,12 +108,16 @@ class RecursoSignUp(Resource):
 		return user_schema.dump(nuevo_Usuario)
 
 class RecursoLogOut(Resource):
+	@login_required
 	def get(self):
 		logout_user()
 		responseDict = {
 			"message": "El usuario se ha desconectado exitosamente"
 		}
-		return json.dumps(responseDict)
+		response = jsonify(responseDict)
+		response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+		response.headers.add('Access-Control-Allow-Credentials', 'true')
+		return response
 
 # Recursos de eventos
 class RecursoListarEventos(Resource):
@@ -134,7 +145,12 @@ class RecursoListarEventosUsuario(Resource):
 	def get(self):
 		mail = current_user.email
 		eventos_usuario = Evento.query.filter_by(user_mail=mail)
-		return eventos_schema.dump(eventos_usuario)
+		result = eventos_schema.dump(eventos_usuario)
+		response = eventos_schema.jsonify(result)
+		response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+		response.headers.add('Access-Control-Allow-Credentials', 'true')
+		return response
+
 
 class RecursoUnEvento(Resource):
 	def get(self, id_evento):
