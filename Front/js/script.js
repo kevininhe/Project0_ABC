@@ -12,6 +12,7 @@ var errorLogin = "snippets/errorLogin.html";
 var eventosUsuarioUrl = "http://172.24.41.201:5000/eventosUsuario";
 var detalleEvento = "snippets/evento_detalle.html";
 var eventoLogOut = "http://172.24.41.201:5000/logout";
+var errorNoAutorizadoUrl = "snippets/errorNoAutorizado.html";
 
 // Convenience function for inserting innerHTML for 'select'
 var insertHtml = function (selector, html) {
@@ -58,9 +59,21 @@ abc.loadHome = function () {
 
 abc.loadUserEvents = function () {
   showLoading("#main-content");
-  $ajaxUtils.sendGetRequest(
-    eventosUsuarioUrl,
-    mostrarEventosUsuario);
+  fetch(eventosUsuarioUrl, {
+      method: 'GET',
+      credentials: 'include'
+  }).then((resp) => {
+      return resp.json();
+  }).then((bodyJson) => {
+    mostrarEventosUsuario(bodyJson);
+  }).catch((error) => {
+    $ajaxUtils.sendGetRequest(
+      errorNoAutorizadoUrl,
+      function functionName(responseText) {
+        insertHtml("#main-content",responseText);
+      },
+      false);
+  });
 };
 
 function mostrarEventosUsuario(eventos) {
@@ -136,6 +149,13 @@ function inicioSesionEventListener(loginEvent) {
                 return resp.json();
             }).then((bodyJson) => {
               mostrarEventosUsuario(bodyJson);
+            }).catch((error) => {
+              $ajaxUtils.sendGetRequest(
+                errorNoAutorizadoUrl,
+                function functionName(responseText) {
+                  insertHtml("#main-content",responseText);
+                },
+                false);
             });
           }else{
             $ajaxUtils.sendGetRequest(
@@ -197,7 +217,7 @@ abc.signUp = function () {
               function functionName(responseText) {
                 insertHtml("#main-content",responseText);
               },
-              false)
+              false);
           });
       });
     },
